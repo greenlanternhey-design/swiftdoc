@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SwiftDoc • Paid to Inbox. Instantly.</title>
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <div class="max-w-5xl mx-auto px-4 py-12">
+        <header class="text-center mb-16">
+            <h1 class="text-5xl font-black tracking-tight text-blue-900">SwiftDoc Engine</h1>
+            <p class="mt-4 text-xl text-gray-600">The instant digital asset store. Pay once, receive clean business files directly in your inbox.</p>
+        </header>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2">Compliance Starter Pack</h2>
+                    <p class="text-gray-600 mb-6">Instantly generates localized data privacy policies tailored to your exact jurisdiction rules.</p>
+                    <div class="text-3xl font-extrabold text-gray-900 mb-6">$79</div>
+                    <input id="comp-name" type="text" placeholder="Company Name" class="w-full p-3 mb-3 border rounded-lg">
+                    <input id="comp-jurisdiction" type="text" placeholder="Jurisdiction (e.g. US, EU)" class="w-full p-3 mb-3 border rounded-lg">
+                </div>
+                <input id="comp-email" type="email" placeholder="Your Delivery Email" class="w-full p-3 mb-3 border rounded-lg">
+                <button onclick="buy('SKU_COMPLIANCE')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">Generate Pack Instantly</button>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2">Instant Website Audit</h2>
+                    <p class="text-gray-600 mb-6">Runs deep diagnostic checks on latency metrics and structural SEO problems.</p>
+                    <div class="text-3xl font-extrabold text-gray-900 mb-6">$49</div>
+                    <input id="audit-url" type="text" placeholder="Target Site URL (e.g. mysite.com)" class="w-full p-3 mb-3 border rounded-lg">
+                </div>
+                <input id="audit-email" type="email" placeholder="Your Delivery Email" class="w-full p-3 mb-3 border rounded-lg">
+                <button onclick="buy('SKU_AUDIT')" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg">Scan & Email Audit</button>
+            </div>
+        </div>
+        <div id="status" class="hidden mt-12 text-center text-green-700 font-bold p-4 bg-green-50 rounded-lg max-w-md mx-auto"></div>
+    </div>
+
+    <script>
+        async function buy(sku) {
+            const status = document.getElementById('status');
+            status.classList.remove('hidden');
+            status.innerText = "Processing automated file delivery engine pipeline...";
+            
+            let payload = { sku, email: '', intakeData: {} };
+            if (sku === 'SKU_COMPLIANCE') {
+                payload.email = document.getElementById('comp-email').value;
+                payload.intakeData = { companyName: document.getElementById('comp-name').value, jurisdiction: document.getElementById('comp-jurisdiction').value };
+            } else {
+                payload.email = document.getElementById('audit-email').value;
+                payload.intakeData = { targetUrl: document.getElementById('audit-url').value };
+            }
+
+            await fetch('/api/demo-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            status.innerHTML = "✨ <b>Success!</b> Checked out successfully. Check your email inbox in a few seconds!";
+        }
+    </script>
+</body>
+</html>
