@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-gumroad-field="name">Product Landing Page</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+      /* Custom smooth transitions for dark/light mode */
+      body {
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="font-bold text-lg tracking-tight flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-indigo-600 animate-pulse"></span>
+                <span data-gumroad-field="name">aabffo</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition" aria-label="Toggle Dark Mode">
+                    🌓
+                </button>
+                <a data-gumroad-action="buy" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-lg shadow-indigo-500/25 transition cursor-pointer">
+                    Get Access
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="flex-grow">
+        <section class="max-w-6xl mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-32 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 text-xs font-semibold uppercase tracking-wider">
+                    ⚡ Instant Digital Delivery
+                </div>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight" data-gumroad-field="name">
+                    Transform Your Workflow Today
+                </h1>
+                <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed" data-gumroad-field="description">
+                    The ultimate toolkit designed to save you hours of work and scale your potential effortlessly.
+                </p>
+                
+                <div class="flex items-center gap-4 pt-2">
+                    <div class="flex items-center text-amber-500 font-bold text-sm gap-1">
+                        <span>★</span>
+                        <span data-gumroad-field="rating">4.9</span>
+                        <span class="text-slate-400 font-normal" data-gumroad-field="review-count">(Based on 120+ reviews)</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <a data-gumroad-action="buy" class="inline-flex justify-center items-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-4 rounded-xl text-lg shadow-xl shadow-indigo-600/30 transition transform hover:-translate-y-0.5 cursor-pointer">
+                        I want this — <span data-gumroad-field="price" class="ml-1">$19</span>
+                    </a>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-500">Secure checkout via Gumroad. Instant access guaranteed.</p>
+            </div>
+
+            <!-- Product Visual / Cover Area -->
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition duration-500"></div>
+                <div class="relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 shadow-2xl overflow-hidden">
+                    <!-- Fallback abstract visual if no media loaded -->
+                    <div class="aspect-video w-full rounded-xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 flex items-center justify-center border border-indigo-500/20">
+                        <span class="text-indigo-600 dark:text-indigo-400 font-mono font-bold text-xl tracking-widest">[ aabffo ]</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section class="border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 py-20">
+            <div class="max-w-6xl mx-auto px-6">
+                <div class="text-center max-w-2xl mx-auto space-y-4 mb-16">
+                    <h2 class="text-3xl font-bold tracking-tight">Everything you need to succeed</h2>
+                    <p class="text-slate-600 dark:text-slate-400">Carefully crafted with high standards to deliver absolute value from day one.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">01</div>
+                        <h3 class="font-semibold text-lg">Plug & Play Ready</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Jump right in with clear instructions and a frictionless setup experience.</p>
+                    </div>
+                    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">02</div>
+                        <h3 class="font-semibold text-lg">Lifetime Updates</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Receive all future enhancements, patches, and version upgrades at no extra cost.</p>
+                    </div>
+                    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">03</div>
+                        <h3 class="font-semibold text-lg">Dedicated Support</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Got questions? Get direct assistance whenever you encounter a roadblock.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA Banner -->
+        <section class="max-w-5xl mx-auto px-6 py-20">
+            <div class="rounded-3xl bg-indigo-600 text-white p-8 md:p-16 text-center space-y-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">Ready to get started?</h2>
+                <p class="max-w-xl mx-auto text-indigo-100 text-lg">Join happy creators and professionals using this product today.</p>
+                <div>
+                    <a data-gumroad-action="buy" class="inline-flex justify-center items-center bg-white text-indigo-600 hover:bg-slate-100 font-bold px-8 py-4 rounded-xl text-lg shadow-lg transition cursor-pointer">
+                        Get Instant Access Now
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 dark:border-slate-800 py-8 text-center text-sm text-slate-500">
+        <p>&copy; <span id="year"></span> <span data-gumroad-field="name">aabffo</span>. Powered by Gumroad.</p>
+    </footer>
+
+    <!-- Script to manage theme toggle and copyright year -->
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+        
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+
+        themeToggle.addEventListener('click', () => {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                htmlElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+        });
+
+        // Initialize theme based on preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+        } else {
+            htmlElement.classList.remove('dark');
+        }
+    </script>
+</body>
+</html>
