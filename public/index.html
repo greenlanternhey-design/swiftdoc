@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SwiftDoc • Paid to Inbox. Instantly.</title>
     <script src="https://tailwindcss.com"></script>
 </head>
@@ -37,7 +38,7 @@
             </div>
         </div>
 
-        <!-- SwiftDoc Premium Download Interface Container (Moved Inside Layout) -->
+        <!-- SwiftDoc Premium Download Interface Container -->
         <div class="max-w-md mx-auto mt-16 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-center">
             <div class="flex items-center justify-center space-x-2 mb-2">
                 <span class="text-2xl">📦</span>
@@ -72,12 +73,17 @@
                 payload.intakeData = { targetUrl: document.getElementById('audit-url').value };
             }
 
-            await fetch('/api/demo-checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            status.innerHTML = "✨ <b>Success!</b> Checked out successfully. Check your email inbox in a few seconds!";
+            try {
+                await fetch('/api/demo-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                status.innerHTML = "✨ <b>Success!</b> Checked out successfully. Check your email inbox in a few seconds!";
+            } catch (err) {
+                console.error(err);
+                status.innerHTML = "<span class='text-red-600'>An error occurred during verification.</span>";
+            }
         }
     </script>
 </body>
