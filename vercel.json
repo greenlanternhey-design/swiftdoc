@@ -2,18 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "Server.js",
+      "src": "index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/download-package",
-      "dest": "Server.js"
+      "dest": "index.js"
     },
     {
       "src": "/api/(.*)",
-      "dest": "Server.js"
+      "dest": "index.js"
     },
     {
       "handle": "filesystem"
