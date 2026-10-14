@@ -1,0 +1,8 @@
+import os
+from pathlib import Path
+
+# Define the name of the folder you want to protect/keep
+PROTECTED_FOLDER = Path("my_uploads_folder")
+
+# This automatically checks if the folder exists; if it doesn't, it creates it safely!
+PROTECTED_FOLDER.mkdir(parents=True, exist_ok=True)
