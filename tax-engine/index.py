@@ -1,3 +1,4 @@
+import fiscal_pricing
 import os
 import uuid
 import json
@@ -211,3 +212,36 @@ def sync_gumroad_folder():
             }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to communicate with Gumroad infrastructure: {str(e)}")
+from fastapi import FastAPI, HTTPException, status
+# Import the new configuration file you just opened inside the main folder
+import fiscal_pricing
+
+# Initialize or use your existing FastAPI app instance
+app = FastAPI(title="DocuFiscal Core Engine")
+
+# --- PUBLIC BILLING ENDPOINTS ---
+
+@app.get("/billing/status")
+def get_current_pricing_details():
+    """Public endpoint to fetch current active prices and trial configurations."""
+    return fiscal_pricing.CURRENT_PRICING_STATE
+
+@app.post("/billing/access-check")
+def generate_user_licensing_profile():
+    """Processes dynamic access windows based on your active trial configurations."""
+    profile = fiscal_pricing.calculate_user_access_window()
+    return {"status": "profile_generated", "details": profile}
+
+# --- ADMINISTRATIVE CONTROL CHANNELS ---
+
+@app.post("/admin/update-price")
+def admin_modify_price(new_price: float):
+    """Allows you to change the product base price dynamically at any time."""
+    result = fiscal_pricing.update_product_price(new_price=new_price)
+    return result
+
+@app.post("/admin/toggle-trial")
+def admin_modify_trial(active: bool, days: int = 7):
+    """Allows you to turn free trials on and off time after time."""
+    result = fiscal_pricing.configure_free_trial(active=active, duration_days=days)
+    return result
