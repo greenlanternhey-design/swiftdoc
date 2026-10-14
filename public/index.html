@@ -36,6 +36,24 @@
                 <button onclick="buy('SKU_AUDIT')" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg">Scan & Email Audit</button>
             </div>
         </div>
+
+        <!-- SwiftDoc Premium Download Interface Container (Moved Inside Layout) -->
+        <div class="max-w-md mx-auto mt-16 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-center">
+            <div class="flex items-center justify-center space-x-2 mb-2">
+                <span class="text-2xl">📦</span>
+                <h3 class="text-lg font-bold text-gray-900 m-0">SwiftDoc ClauseCheck</h3>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed mb-6 mt-0">
+                Annual Access License (Enterprise Edition). Tap below to instantly download your secure offline runtime environment and compliance templates.
+            </p>
+            
+            <!-- THE SECURE REDIRECTION LINK -->
+            <a href="/download-package" 
+               class="block w-full text-center bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-semibold text-base transition-colors duration-200 shadow-sm">
+                📥 Download License Package (.ZIP)
+            </a>
+        </div>
+
         <div id="status" class="hidden mt-12 text-center text-green-700 font-bold p-4 bg-green-50 rounded-lg max-w-md mx-auto"></div>
     </div>
 
@@ -64,16 +82,3 @@
     </script>
 </body>
 </html>
-<!-- Secure Download Interface Container -->
-<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; border: 1px solid #e1e4e8; border-radius: 12px; max-width: 440px; background-color: #fafbfc; margin: 20px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05); box-sizing: border-box;">
-    <h3 style="margin-top: 0; color: #24292e; font-size: 18px; font-weight: 600; margin-bottom: 8px;">SwiftDoc ClauseCheck</h3>
-    <p style="font-size: 14px; color: #586069; line-height: 1.6; margin-bottom: 24px; margin-top: 0;">
-        Annual Access License (Enterprise Edition). Tap below to instantly download your secure offline runtime environment and compliance templates.
-    </p>
-    
-    <!-- THE SECURE REDIRECTION LINK -->
-    <a href="/download-package" 
-       style="display: block; text-align: center; background-color: #2ea44f; color: white; padding: 14px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; transition: background-color 0.2s; box-shadow: 0 1px 0 rgba(27,31,35,0.1);">
-        📥 Download License Package (.ZIP)
-    </a>
-</div>
