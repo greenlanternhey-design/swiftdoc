@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, status, Security, Depends
 from fastapi.security.api_key import APIKeyHeader
 
-# Import your helper files configuration layers
+# Import helper files configuration layers
 import fiscal_pricing
 import metadata_config
 
@@ -17,7 +17,6 @@ app = FastAPI(
 )
 
 # --- SECURITY MANAGER & GATEKEEPER ---
-# This sets up the security padlock structure inside your /docs panel
 api_key_header = APIKeyHeader(name="X-Admin-API-Key", auto_error=False)
 
 def verify_admin_privileges(api_key: str = Depends(api_key_header)):
@@ -184,10 +183,7 @@ def enroll_business_to_deadline(business_id: uuid.UUID, deadline_id: uuid.UUID):
 
 @app.post("/tax/cron-dispatch", response_model=dict)
 def run_cron_notification_dispatcher():
-    """
-    Background worker microservice entrypoint. Scans the scheduled stack, 
-    dispatches pending tasks matching standard date criteria, and updates runtime logs.
-    """
+    """Background worker microservice entrypoint."""
     now = datetime.utcnow()
     dispatched_count = 0
     
