@@ -11,5 +11,11 @@
       "src": "/(.*)",
       "dest": "tax-engine/main.py"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/billing/reset-monthly-counters",
+      "schedule": "0 0 1 * *"
+    }
   ]
 }
