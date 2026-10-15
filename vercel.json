@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "tax-engine/index.py",
+      "src": "tax-engine/main.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "tax-engine/index.py"
+      "dest": "tax-engine/main.py"
     }
   ]
 }
