@@ -1,9 +1,20 @@
 import uuid
+import os
+import sys
 from datetime import datetime, date, timedelta
 from typing import List, Optional
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException, status, Security, Depends
+from fastapi import FastAPI, Request, HTTPException, status, Security, Depends
 from fastapi.security.api_key import APIKeyHeader
+
+# --- CRITICAL VERCEL PATH PATCH ---
+# Ensures plans.py in the root directory can be found by Vercel's serverless runtime
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+from plans import PLANS  # Safely imports your subscription tier definitions
 
 # Import helper files configuration layers
 import fiscal_pricing
@@ -41,6 +52,7 @@ DB_REMINDERS = {}
 # --- DATA TRANSFERS & VALIDATION LAYER MODELS (Pydantic) ---
 class BusinessCreate(BaseModel):
     company_name: str
+    owner_email: str  # Added to link Gumroad webhook customers to their businesses
 
 class DocumentUpload(BaseModel):
     business_id: uuid.UUID
@@ -72,14 +84,22 @@ class NotificationStatus(BaseModel):
 
 @app.post("/businesses", response_model=dict, status_code=status.HTTP_201_CREATED)
 def create_business(payload: BusinessCreate):
-    """Registers a small business entity portfolio folder."""
+    """Registers a small business entity portfolio folder with an initial free starter tier."""
     biz_id = uuid.uuid4()
     DB_BUSINESSES[biz_id] = {
         "id": biz_id,
         "company_name": payload.company_name,
+        "owner_email": payload.owner_email.strip().lower(),
+        "plan_tier": "solo",              # Default plan assignment
+        "documents_processed_this_month": 0, # Initial usage counter
         "created_at": datetime.utcnow()
     }
-    return {"status": "success", "business_id": biz_id, "company_name": payload.company_name}
+    return {
+        "status": "success", 
+        "business_id": biz_id, 
+        "company_name": payload.company_name,
+        "plan_tier": "solo"
+    }
 
 
 # --- DOCUMENT PROCESSING ROUTING SERVICES ---
@@ -87,14 +107,29 @@ def create_business(payload: BusinessCreate):
 @app.post("/documents/upload", response_model=MetadataResponse, status_code=status.HTTP_201_CREATED)
 def upload_document(payload: DocumentUpload):
     """
-    Accepts business file registry markers, inserts items into the DB pool,
-    and runs deterministic pipeline rules representing immediate OCR extraction.
+    Accepts business file registry markers, evaluates tiered usage limits, 
+    and extracts metadata deterministic pipeline rules.
     """
     if payload.business_id not in DB_BUSINESSES:
         raise HTTPException(status_code=404, detail="Target Business entity folder missing.")
     
     if payload.document_type not in ['invoice', 'receipt', 'tax_form']:
         raise HTTPException(status_code=400, detail="Invalid layout type target category.")
+        
+    business = DB_BUSINESSES[payload.business_id]
+    user_tier = business.get("plan_tier", "solo")
+    
+    # Safely fetch plan configurations from plans.py map
+    plan_config = PLANS.get(user_tier, PLANS["solo"])
+    max_allowed = plan_config["docs_per_month"]
+    current_usage = business.get("documents_processed_this_month", 0)
+    
+    # --- HARD USAGE LIMIT ENFORCEMENT CHECK ---
+    if current_usage >= max_allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail=f"Usage Limit Reached: Your current '{user_tier.upper()}' tier limits you to {max_allowed} documents per month. Please upgrade your tier via Gumroad."
+        )
         
     doc_id = uuid.uuid4()
     DB_DOCUMENTS[doc_id] = {
@@ -105,6 +140,9 @@ def upload_document(payload: DocumentUpload):
         "document_type": payload.document_type,
         "uploaded_at": datetime.utcnow()
     }
+    
+    # Increment the usage limit tracking counter safely upon success
+    business["documents_processed_this_month"] = current_usage + 1
     
     # Simulating deterministic AI metadata generation/processing engine rules
     meta_id = uuid.uuid4()
@@ -138,8 +176,7 @@ def create_global_deadline(payload: TaxDeadlineCreate):
 @app.post("/tax/enroll", response_model=List[NotificationStatus], status_code=status.HTTP_201_CREATED)
 def enroll_business_to_deadline(business_id: uuid.UUID, deadline_id: uuid.UUID):
     """
-    Enrolls a business into a specific tax deadline tracks framework and automatically
-    pre-calculates and queues reminder schedules (30-day, 7-day, 1-day alerts).
+    Enrolls a business into specific tax deadline frameworks and pre-calculates schedules.
     """
     if business_id not in DB_BUSINESSES:
         raise HTTPException(status_code=404, detail="Business not found.")
@@ -158,7 +195,6 @@ def enroll_business_to_deadline(business_id: uuid.UUID, deadline_id: uuid.UUID):
     target_deadline = DB_DEADLINES[deadline_id]
     due_date_ref = target_deadline["due_date"]
     
-    # Automated generation engine for sequential alerting windows
     generated_reminders = []
     alert_intervals = [30, 7, 1]
     channels = ["email", "sms", "push"]
@@ -222,3 +258,17 @@ def admin_modify_trial(active: bool, days: int = 7):
     """Allows you to turn free trials on and off time after time."""
     result = fiscal_pricing.configure_free_trial(active=active, duration_days=days)
     return result
+
+
+# =====================================================================
+# --- LIVE GUMROAD WEBHOOK INTEGRATION ENDPOINT ---
+# =====================================================================
+
+def update_database_user_tier(email: str, plan_type: str):
+    """
+    Scans internal runtime databases to map purchased Gumroad tiers to active business entities.
+    """
+    updated_any = False
+    for biz_id, business in DB_BUSINESSES.items():
+        if business.get("owner_email") == email:
+            business["plan_tier"] = plan_type
