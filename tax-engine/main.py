@@ -241,5 +241,5 @@ def admin_modify_trial(active: bool, days: int = 7):
     result = fiscal_pricing.configure_free_trial(active=active, duration_days=days)
     return result
 
-# Mount the sub-app cleanly onto the root app instance
+# Mount the billing engine cleanly so it coexists with the main ledger
 app.mount("/billing", sub_app)
