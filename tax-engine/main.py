@@ -8,7 +8,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, Request, HTTPException, status
 
-# --- MAIN ENGINE APP CONFIGURATION ---
+# --- 1. CORE APPS MASTER ENGINE INITIALIZATION ---
 app = FastAPI(
     title="SMB Ledger & Tax Scheduler Engine", 
     version="1.0.0",
@@ -17,19 +17,16 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
-# --- BYPASS SUB-BASE ROUTING LAYER ---
+# --- 2. VERCEL SUB-BASE ROUTING BYPASS MIDDLEWARE ---
 @app.middleware("http")
 async def bypass_subbase_routing(request: Request, call_next):
-    """
-    Intercepts Vercel base rewrite patterns. Prevents proxy 404 errors 
-    by ensuring path variables resolve correctly.
-    """
+    """Intercepts Vercel base rewrite patterns to prevent proxy 404 routing faults."""
     if "x-forwarded-prefix" in request.headers or request.url.path.startswith("/api"):
         request.scope["root_path"] = "/"
     response = await call_next(request)
     return response
 
-# --- PRODUCTION SECURE COLD STORAGE LAYER (File-Based Persistence) ---
+# --- 3. COLD STORAGE PERSISTENCE LAYER ---
 DATA_FILE = "/tmp/smb_ledger_store.json"
 
 def load_system_state():
@@ -50,7 +47,7 @@ def save_system_state(state):
     with open(DATA_FILE, 'w') as f:
         json.dump(state, f)
 
-# --- EMAIL SCHEDULER & NOTIFICATION PIPELINE (SendGrid Engine) ---
+# --- 4. COMMUNICATION INFRASTRUCTURE LAYER (SendGrid) ---
 def send_live_email_alert(recipient_email: str, subject: str, html_content: str) -> bool:
     api_key = os.environ.get("SENDGRID_API_KEY")
     sender_email = os.environ.get("SENDER_EMAIL")
@@ -78,7 +75,7 @@ def send_live_email_alert(recipient_email: str, subject: str, html_content: str)
         print(f"[ERROR] Email tracking channel delivery failed: {str(e)}")
         return False
 
-# --- VALIDATION LAYERS & INCOMING RECEPTACLE MODELS ---
+# --- 5. SCHEMA VALIDATION LAYER (Pydantic Models) ---
 class BusinessCreate(BaseModel):
     company_name: str
     owner_email: str
@@ -95,8 +92,7 @@ class TaxDeadlineCreate(BaseModel):
     due_date: date
     fiscal_year: int
 
-# --- ACTIVE COMPLIANCE ROUTING PORTS ---
-
+# --- 6. MAIN ROUTING ENDPOINTS ---
 @app.get("/")
 def read_root():
     return {
@@ -109,7 +105,6 @@ def read_root():
 def create_business(payload: BusinessCreate):
     state = load_system_state()
     biz_id = str(uuid.uuid4())
-    
     state["businesses"][biz_id] = {
         "id": biz_id,
         "company_name": payload.company_name,
@@ -124,7 +119,6 @@ def upload_document(payload: DocumentUpload):
     state = load_system_state()
     if payload.business_id not in state["businesses"]:
         raise HTTPException(status_code=404, detail="Target Business entity folder missing.")
-    
     if payload.document_type not in ['invoice', 'receipt', 'tax_form']:
         raise HTTPException(status_code=400, detail="Invalid layout target document category.")
         
@@ -153,7 +147,6 @@ def upload_document(payload: DocumentUpload):
 def create_global_deadline(payload: TaxDeadlineCreate):
     state = load_system_state()
     deadline_id = str(uuid.uuid4())
-    
     state["deadlines"][deadline_id] = {
         "id": deadline_id,
         "jurisdiction": payload.jurisdiction,
@@ -184,7 +177,6 @@ def run_cron_notification_dispatcher():
     state = load_system_state()
     today_str = str(date.today())
     dispatched_count = 0
-    
     for rem_id, data in state["reminders"].items():
         if not data["is_dispatched"] and data["scheduled_date"] <= today_str:
             email_sent = send_live_email_alert(
@@ -195,7 +187,6 @@ def run_cron_notification_dispatcher():
             if email_sent:
                 data["is_dispatched"] = True
                 dispatched_count += 1
-                
     save_system_state(state)
     return {"status": "cron_job_finished", "dispatched_notifications_count": dispatched_count}
 
@@ -204,7 +195,6 @@ def sync_gumroad_folder():
     token = os.environ.get("GUMROAD_ACCESS_TOKEN")
     if not token:
         raise HTTPException(status_code=500, detail="GUMROAD_ACCESS_TOKEN is missing in Vercel settings.")
-    
     gumroad_url = f"https://gumroad.com{token}"
     try:
         request_wrapper = urllib.request.Request(gumroad_url, headers={'User-Agent': 'Vercel-SMB-Engine-Agent'})
@@ -219,7 +209,7 @@ def sync_gumroad_folder():
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to communicate with Gumroad infrastructure: {str(e)}")
 
-# --- DOCUFISCAL BILLING & ADMIN ENGINE SUB-APP ---
+# --- 7. DOCUFISCAL BILLING INTEGRATION SUB-APPLICATION ---
 sub_app = FastAPI(title="DocuFiscal Core Engine")
 
 @sub_app.get("/status")
@@ -233,13 +223,11 @@ def generate_user_licensing_profile():
 
 @sub_app.post("/update-price")
 def admin_modify_price(new_price: float):
-    result = fiscal_pricing.update_product_price(new_price=new_price)
-    return result
+    return fiscal_pricing.update_product_price(new_price=new_price)
 
 @sub_app.post("/toggle-trial")
 def admin_modify_trial(active: bool, days: int = 7):
-    result = fiscal_pricing.configure_free_trial(active=active, duration_days=days)
-    return result
+    return fiscal_pricing.configure_free_trial(active=active, duration_days=days)
 
-# Mount the billing engine cleanly so it coexists with the main ledger
+# Mount the sub-app cleanly onto the system framework instance
 app.mount("/billing", sub_app)
