@@ -8,7 +8,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from fastapi import FastAPI, Request, HTTPException, status
 
-# --- SINGLE UNIFIED SERVER INITIALIZATION ---
+# --- MAIN ENGINE APP CONFIGURATION ---
 app = FastAPI(
     title="SMB Ledger & Tax Scheduler Engine", 
     version="1.0.0",
@@ -78,7 +78,7 @@ def send_live_email_alert(recipient_email: str, subject: str, html_content: str)
         print(f"[ERROR] Email tracking channel delivery failed: {str(e)}")
         return False
 
-# --- VALIDATION LAYERS & INCOMING RECEPTACLE MODELS (Pydantic) ---
+# --- VALIDATION LAYERS & INCOMING RECEPTACLE MODELS ---
 class BusinessCreate(BaseModel):
     company_name: str
     owner_email: str
@@ -199,7 +199,6 @@ def run_cron_notification_dispatcher():
     save_system_state(state)
     return {"status": "cron_job_finished", "dispatched_notifications_count": dispatched_count}
 
-# --- LIVE GUMROAD COMPONENT FILES INTELLIGENCE GATE ---
 @app.get("/api/gumroad/sync")
 def sync_gumroad_folder():
     token = os.environ.get("GUMROAD_ACCESS_TOKEN")
@@ -220,27 +219,27 @@ def sync_gumroad_folder():
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to communicate with Gumroad infrastructure: {str(e)}")
 
-# --- UNIFIED BILLING & ADMIN CHANNELS ---
+# --- DOCUFISCAL BILLING & ADMIN ENGINE SUB-APP ---
+sub_app = FastAPI(title="DocuFiscal Core Engine")
 
-@app.get("/api/billing/status")
+@sub_app.get("/status")
 def get_current_pricing_details():
-    """Public endpoint to fetch current active prices and trial configurations."""
     return fiscal_pricing.CURRENT_PRICING_STATE
 
-@app.post("/api/billing/access-check")
+@sub_app.post("/access-check")
 def generate_user_licensing_profile():
-    """Processes dynamic access windows based on your active trial configurations."""
     profile = fiscal_pricing.calculate_user_access_window()
     return {"status": "profile_generated", "details": profile}
 
-@app.post("/api/admin/update-price")
+@sub_app.post("/update-price")
 def admin_modify_price(new_price: float):
-    """Allows you to change the product base price dynamically at any time."""
     result = fiscal_pricing.update_product_price(new_price=new_price)
     return result
 
-@app.post("/api/admin/toggle-trial")
+@sub_app.post("/toggle-trial")
 def admin_modify_trial(active: bool, days: int = 7):
-    """Allows you to turn free trials on and off time after time."""
     result = fiscal_pricing.configure_free_trial(active=active, duration_days=days)
     return result
+
+# Mount the sub-app cleanly onto the root app instance
+app.mount("/billing", sub_app)
