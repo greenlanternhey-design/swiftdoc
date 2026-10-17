@@ -27,6 +27,19 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# --- BYPASS SUB-BASE ROUTING LAYER (Turns Off The Alarm) ---
+@app.middleware("http")
+async def bypass_subbase_routing(request: Request, call_next):
+    """
+    Interceptors for Vercel structural rewrites. Prevents backend panics (404s)
+    by ensuring proxy root calls are stripped of complex path prefix headers.
+    """
+    # Force alignment of root path variables for ASGI proxy scopes
+    if "x-forwarded-prefix" in request.headers or request.url.path.startswith("/api"):
+        request.scope["root_path"] = "/"
+    response = await call_next(request)
+    return response
+
 # --- SECURITY MANAGER & GATEKEEPER ---
 api_key_header = APIKeyHeader(name="X-Admin-API-Key", auto_error=False)
 
@@ -229,46 +242,3 @@ def run_cron_notification_dispatcher():
             dispatched_count += 1
             
     return {"status": "cron_job_finished", "dispatched_notifications_count": dispatched_count}
-
-
-# --- PUBLIC PRICING & TRIAL PIPELINES ---
-
-@app.get("/billing/status")
-def get_current_pricing_details():
-    """Public endpoint to fetch current active prices and trial configurations."""
-    return fiscal_pricing.CURRENT_PRICING_STATE
-
-@app.post("/billing/access-check")
-def generate_user_licensing_profile():
-    """Processes dynamic access windows based on active trial configurations."""
-    profile = fiscal_pricing.calculate_user_access_window()
-    return {"status": "profile_generated", "details": profile}
-
-
-# --- SECURED SYSTEM ADMIN ROUTE GATES (Protected by Security Layer) ---
-
-@app.post("/admin/update-price", dependencies=[Depends(verify_admin_privileges)])
-def admin_modify_price(new_price: float):
-    """Allows you to change the price dynamically at any time."""
-    result = fiscal_pricing.update_product_price(new_price=new_price)
-    return result
-
-@app.post("/admin/toggle-trial", dependencies=[Depends(verify_admin_privileges)])
-def admin_modify_trial(active: bool, days: int = 7):
-    """Allows you to turn free trials on and off time after time."""
-    result = fiscal_pricing.configure_free_trial(active=active, duration_days=days)
-    return result
-
-
-# =====================================================================
-# --- LIVE GUMROAD WEBHOOK INTEGRATION ENDPOINT ---
-# =====================================================================
-
-def update_database_user_tier(email: str, plan_type: str):
-    """
-    Scans internal runtime databases to map purchased Gumroad tiers to active business entities.
-    """
-    updated_any = False
-    for biz_id, business in DB_BUSINESSES.items():
-        if business.get("owner_email") == email:
-            business["plan_tier"] = plan_type
