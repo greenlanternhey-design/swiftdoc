@@ -101,37 +101,36 @@ def read_root():
         "interactive_documentation": "/api/docs"
     }
 
-# --- AUTOMATED KEEP-ALIVE ENDPOINT (Bypasses Subbase Inactivity Suspensions) ---
-@app.get("/api/keep-alive", tags=["System Maintenance"])
-async def keep_alive_ping(authorization: Optional[str] = Header(None)):
-    """
-    Lightweight endpoint pinged automatically by Vercel Cron or GitHub Actions.
-    Reads/writes system state to guarantee backend & subbase activity.
-    """
+# --- VERCEL CRON KEEP-ALIVE HANDLERS (Bypasses Subbase Inactivity Suspensions) ---
+@app.get("/api/cron", tags=["System Maintenance"])
+async def vercel_daily_cron_ping(authorization: Optional[str] = Header(None)):
+    """Daily cron trigger from Vercel to maintain active state/subbase connection."""
     cron_secret = os.environ.get("CRON_SECRET")
-    if cron_secret:
-        expected_auth = f"Bearer {cron_secret}"
-        if authorization != expected_auth:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Unauthorized cron trigger"
-            )
+    if cron_secret and authorization != f"Bearer {cron_secret}":
+        raise HTTPException(status_code=401, detail="Unauthorized cron trigger")
 
     try:
         state = load_system_state()
-        state["metadata"]["last_keep_alive"] = datetime.utcnow().isoformat()
+        state["metadata"]["last_cron_ping"] = datetime.utcnow().isoformat()
         save_system_state(state)
-
-        return {
-            "status": "success",
-            "message": "Subbase & system activity ping recorded successfully.",
-            "timestamp": datetime.utcnow().isoformat()
-        }
+        return {"status": "success", "message": "Daily cron ping executed successfully."}
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Keep-alive trigger failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/billing/reset-monthly-counters", tags=["System Maintenance"])
+async def reset_monthly_counters(authorization: Optional[str] = Header(None)):
+    """Monthly cron trigger from Vercel to reset usage counters & maintain subbase activity."""
+    cron_secret = os.environ.get("CRON_SECRET")
+    if cron_secret and authorization != f"Bearer {cron_secret}":
+        raise HTTPException(status_code=401, detail="Unauthorized cron trigger")
+
+    try:
+        state = load_system_state()
+        state["metadata"]["last_monthly_reset"] = datetime.utcnow().isoformat()
+        save_system_state(state)
+        return {"status": "success", "message": "Monthly counters reset successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/businesses", status_code=status.HTTP_201_CREATED)
 def create_business(payload: BusinessCreate):
@@ -258,8 +257,4 @@ def admin_modify_price(new_price: float):
     return fiscal_pricing.update_product_price(new_price=new_price)
 
 @sub_app.post("/toggle-trial")
-def admin_modify_trial(active: bool, days: int = 7):
-    return fiscal_pricing.configure_free_trial(active=active, duration_days=days)
-
-# Mount the sub-app cleanly onto the system framework instance
-app.mount("/billing", sub_app)
+def admin_modify_
