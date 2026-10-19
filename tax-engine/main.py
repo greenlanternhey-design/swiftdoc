@@ -6,7 +6,7 @@ import urllib.request
 from datetime import datetime, date, timedelta
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status, Header
 
 # --- 1. CORE APPS MASTER ENGINE INITIALIZATION ---
 app = FastAPI(
@@ -100,6 +100,38 @@ def read_root():
         "system": "SMB Compliance Engine Master Build",
         "interactive_documentation": "/api/docs"
     }
+
+# --- AUTOMATED KEEP-ALIVE ENDPOINT (Bypasses Subbase Inactivity Suspensions) ---
+@app.get("/api/keep-alive", tags=["System Maintenance"])
+async def keep_alive_ping(authorization: Optional[str] = Header(None)):
+    """
+    Lightweight endpoint pinged automatically by Vercel Cron or GitHub Actions.
+    Reads/writes system state to guarantee backend & subbase activity.
+    """
+    cron_secret = os.environ.get("CRON_SECRET")
+    if cron_secret:
+        expected_auth = f"Bearer {cron_secret}"
+        if authorization != expected_auth:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Unauthorized cron trigger"
+            )
+
+    try:
+        state = load_system_state()
+        state["metadata"]["last_keep_alive"] = datetime.utcnow().isoformat()
+        save_system_state(state)
+
+        return {
+            "status": "success",
+            "message": "Subbase & system activity ping recorded successfully.",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Keep-alive trigger failed: {str(e)}"
+        )
 
 @app.post("/api/businesses", status_code=status.HTTP_201_CREATED)
 def create_business(payload: BusinessCreate):
