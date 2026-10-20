@@ -13,7 +13,7 @@ PLANS = {
     },
     "enterprise": {
         "gumroad_id": os.getenv("GUMROAD_ENTERPRISE_ID"),
-        "docs_per_month": 10000,  # Or flag as a custom high limit
+        "docs_per_month": 10000,
         "features": {"extract", "deadlines", "export", "multi_client", "api_access", "priority_support"},
     },
 }
