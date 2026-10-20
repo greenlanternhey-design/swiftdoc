@@ -1,25 +1,16 @@
 {
-  "version": 2,
   "builds": [
     {
       "src": "tax-engine/main.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": { "includeFiles": ["tax-engine/**"] }
     }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "tax-engine/main.py"
-    }
+    { "src": "/(.*)", "dest": "tax-engine/main.py" }
   ],
   "crons": [
-    {
-      "path": "/api/billing/reset-monthly-counters",
-      "schedule": "0 0 1 * *"
-    },
-    {
-      "path": "/api/cron",
-      "schedule": "0 0 * * *"
-    }
+    { "path": "/api/cron", "schedule": "0 6 * * *" },
+    { "path": "/api/billing/reset-monthly-counters", "schedule": "0 0 1 * *" }
   ]
 }
