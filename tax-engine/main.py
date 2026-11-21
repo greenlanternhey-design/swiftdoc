@@ -438,6 +438,23 @@ def health():
     }
 
 
+# --- Isolated, authenticated Supabase heartbeat (read-only; no reminder/state work) ---
+@app.get(
+    "/api/supabase/heartbeat",
+    tags=["System Maintenance"],
+    dependencies=[Depends(require_cron_or_api_key)],
+)
+def supabase_heartbeat():
+    """Check Supabase connectivity without running the customer-facing maintenance cron."""
+    result = supabase_keepalive()
+    if result.get("ok"):
+        return {"status": "ok", **result}
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail={"status": "failed", **result},
+    )
+
+
 # --- Cron handlers (Vercel cron issues GET requests) ---
 @app.get("/api/cron", tags=["System Maintenance"], dependencies=[Depends(require_cron_or_api_key)])
 def vercel_daily_cron_ping():
