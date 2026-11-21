@@ -284,25 +284,32 @@ def send_live_email_alert(recipient_email: str, subject: str, html_content: str)
 # 6. Supabase keep-alive (prevents free-tier project pausing)
 # ---------------------------------------------------------------------------
 def supabase_keepalive() -> Dict[str, Any]:
-    """Real request against Supabase so the project counts as active. Never raises."""
+    """Perform a read-only Supabase request and report success only for 2xx responses."""
     base = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_KEY")
     if not base or not key:
-        return {"supabase": "not_configured"}
-    table = os.environ.get("SUPABASE_KEEPALIVE_TABLE", "")
+        return {"supabase": "not_configured", "ok": False}
+
+    table = os.environ.get("SUPABASE_KEEPALIVE_TABLE", "").strip()
     path = f"/rest/v1/{table}?select=*&limit=1" if table else "/rest/v1/"
     req = urllib.request.Request(
         base.rstrip("/") + path,
         headers={"apikey": key, "Authorization": f"Bearer {key}"},
+        method="GET",
     )
     try:
         with urllib.request.urlopen(req, timeout=8) as resp:
-            return {"supabase": "pinged", "http_status": resp.status}
+            if 200 <= resp.status < 300:
+                return {"supabase": "pinged", "ok": True, "http_status": resp.status}
+            # urllib normally raises HTTPError for non-2xx responses; retain this
+            # guard in case a custom opener returns a non-success response.
+            return {"supabase": "http_error", "ok": False, "http_status": resp.status}
     except urllib.error.HTTPError as exc:
-        return {"supabase": "responded", "http_status": exc.code}
+        logger.warning("Supabase keep-alive returned HTTP %s", exc.code)
+        return {"supabase": "http_error", "ok": False, "http_status": exc.code}
     except Exception as exc:
         logger.error("Supabase keep-alive failed: %s", type(exc).__name__)
-        return {"supabase": "unreachable"}
+        return {"supabase": "unreachable", "ok": False}
 
 
 # ---------------------------------------------------------------------------
