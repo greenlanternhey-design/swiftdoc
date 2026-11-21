@@ -446,7 +446,16 @@ def vercel_daily_cron_ping():
     with state_txn() as state:
         state["metadata"]["last_cron_ping"] = utc_now().isoformat()
         result = dispatch_due_reminders(state)
-    return {"status": "success", "message": "Daily cron ping executed successfully.", **result, **ping}
+    return {
+        "status": "success" if ping.get("ok") else "partial",
+        "message": (
+            "Daily cron completed and Supabase keep-alive succeeded."
+            if ping.get("ok")
+            else "Daily cron completed, but Supabase keep-alive did not succeed."
+        ),
+        **result,
+        **ping,
+    }
 
 
 @app.get("/api/billing/reset-monthly-counters", tags=["System Maintenance"], dependencies=[Depends(require_cron_or_api_key)])
@@ -456,7 +465,15 @@ def reset_monthly_counters():
     with state_txn() as state:
         state["usage"] = {}
         state["metadata"]["last_monthly_reset"] = utc_now().isoformat()
-    return {"status": "success", "message": "Monthly counters reset successfully.", **ping}
+    return {
+        "status": "success" if ping.get("ok") else "partial",
+        "message": (
+            "Monthly counters reset and Supabase keep-alive succeeded."
+            if ping.get("ok")
+            else "Monthly counters reset, but Supabase keep-alive did not succeed."
+        ),
+        **ping,
+    }
 
 
 # --- Businesses ---
